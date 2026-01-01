@@ -1,3 +1,4 @@
+"use client"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -14,11 +15,47 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import axios from "axios"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const router  = useRouter();
+  const initialdata = {email:"",password:""}
+  const [fromdata,setfromdata] =useState(initialdata);
+  const [success,setsuccess] = useState("");
+  const [errormessage,seterrormessage] = useState("");
+
+  function handlechange(e:any){
+    setfromdata({...fromdata,[e.target.name]:e.target.value});
+  }
+
+  async function handlesubmit(e:any){
+  e.preventDefault();
+
+  try{
+const res= await axios.post("http://localhost:8080/user/login",fromdata);
+setsuccess(res.data?.message||"login Successfull");
+
+localStorage.setItem("token",res.data?.token);
+seterrormessage("");
+router.push("/dashboard");
+  }
+  catch(err){
+if(axios.isAxiosError(err)){
+  seterrormessage(err.response?.data?.message ||err.message||"something Went Wrong");
+
+}
+else{
+
+    seterrormessage("Unexpected error occurred");
+}
+  }
+
+  }
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -36,6 +73,9 @@ export function LoginForm({
                 <Input
                   id="email"
                   type="email"
+                  name="email"
+                  onChange={handlechange}
+                  value={fromdata.email}
                   placeholder="m@example.com"
                   required
                 />
@@ -50,13 +90,17 @@ export function LoginForm({
                     Forgot your password?
                   </a>
                 </div>
-                <Input id="password" type="password" required />
+                <Input id="password" 
+                  name="password"
+                  onChange={handlechange}
+                  value={fromdata.password}
+                type="password" required />
               </Field>
               <Field>
-                <Button type="submit">Login</Button>
-                <Button variant="outline" type="button">
-                  Login with Google
-                </Button>
+                <span className="text-green-400 text-center">{success}</span>
+                 <span className="text-red-400 text-center">{errormessage}</span>
+                <Button type="submit" onClick={handlesubmit}>Login</Button>
+                
                 <FieldDescription className="text-center">
                   Don&apos;t have an account? <a href="#">Sign up</a>
                 </FieldDescription>
