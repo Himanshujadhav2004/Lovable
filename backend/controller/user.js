@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 
 exports.signup = async(req,res)=>{
     const {email , password,name} = req.body;
-const user = await userschema.findOne(email);
+const user = await userschema.findOne({email});
 
 if(user){
     return res.status(404).json({message:"User Already Register"});
@@ -14,7 +14,7 @@ if(user){
 
  await userdata.save();
 
- return res.status(201).jsong({message:"User has Register Successfully"});
+ return res.status(201).json({message:"User has Register Successfully"});
 
 }
 
@@ -22,7 +22,7 @@ exports.login = async (req,res)=>{
 
     const {email,password} = req.body;
 
-    const user = await userschema.findOne(email);
+    const user = await userschema.findOne({email});
     if(!user){
         return res.status(404).json({message:"User Not Found"});
 
@@ -33,7 +33,7 @@ exports.login = async (req,res)=>{
         return res.status(401).json({message:"Password is not Correct"});
     }
 
-const token = jwt.sign(email,process.env.JWT,{expiresIn:'1h'});
+const token = jwt.sign({email:user.email},process.env.JWT,{expiresIn:'1h'});
 
 return res.status(200).json({token:token,message:"User Login Succesfully"});
 
